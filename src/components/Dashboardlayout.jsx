@@ -1,3 +1,4 @@
+// src/components/DashboardLayout.jsx
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
@@ -18,29 +19,47 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import {
+  Dashboard as DashboardIcon,
+  People as PeopleIcon,
+  ShoppingBasket as ProductsIcon,
+  Settings as SettingsIcon,
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   Logout as LogoutIcon,
+  PhoneInTalk,
+  Person,
 } from "@mui/icons-material";
+import { COLORS } from "../utils/Colors";
 
-// Mock navigation items - replace with your actual routes
 const navItems = [
-  { text: "Dashboard", icon: <MenuIcon />, path: "/" },
-  { text: "Users", icon: <MenuIcon />, path: "/users" },
-  { text: "Products", icon: <MenuIcon />, path: "/products" },
-  { text: "Settings", icon: <MenuIcon />, path: "/settings" },
+  { text: "Summary", icon: <DashboardIcon />, path: "/dashboard" },
+  {
+    text: "Conversations",
+    icon: <PhoneInTalk />,
+    path: "/dashboard/conversation",
+  },
+  { text: "Profile", icon: <Person />, path: "/dashboard/profile" },
 ];
 
 const drawerWidth = 240;
+const collapsedDrawerWidth = 64;
 
 const DashboardLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
-  const [open, setOpen] = useState(!isMobile);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
+
+  const open = isMobile ? mobileOpen : desktopOpen;
+  const width = open ? drawerWidth : collapsedDrawerWidth;
 
   const handleDrawerToggle = () => {
-    setOpen(!open);
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setDesktopOpen(!desktopOpen);
+    }
   };
 
   return (
@@ -50,25 +69,29 @@ const DashboardLayout = () => {
       {/* App Bar */}
       <AppBar
         position="fixed"
+        style={{ backgroundColor: COLORS.primaryColor }}
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          ...(open && !isMobile && { width: `calc(100% - ${drawerWidth}px)` }),
+          zIndex: theme.zIndex.drawer + 1,
+          width: isMobile ? "100%" : `calc(100% - ${width}px)`,
+          ml: isMobile ? 0 : `${width}px`,
+          transition: theme.transitions.create(["width", "margin"], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
         }}
       >
         <Toolbar>
-          {isMobile && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Dashboard
+            MY DASHBOARD
           </Typography>
         </Toolbar>
       </AppBar>
@@ -78,23 +101,43 @@ const DashboardLayout = () => {
         variant={isMobile ? "temporary" : "persistent"}
         open={open}
         onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile
+        }}
         sx={{
-          width: drawerWidth,
+          width: width,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
-            width: drawerWidth,
+            width: width,
             boxSizing: "border-box",
+            overflowX: "hidden",
+            transition: theme.transitions.create("width", {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           },
         }}
       >
         <Toolbar>
-          <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              My Website
-            </Typography>
-            <IconButton onClick={handleDrawerToggle}>
-              <ChevronLeftIcon />
-            </IconButton>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              overflow: "hidden",
+            }}
+          >
+            {open && (
+              <Typography variant="h6" noWrap>
+                Farmers
+              </Typography>
+            )}
+            {open && !isMobile && (
+              <IconButton onClick={handleDrawerToggle}>
+                <ChevronLeftIcon />
+              </IconButton>
+            )}
           </Box>
         </Toolbar>
 
@@ -109,16 +152,25 @@ const DashboardLayout = () => {
                 to={item.path}
                 selected={location.pathname === item.path}
                 sx={{
+                  minHeight: 48,
+                  justifyContent: open ? "initial" : "center",
+                  px: 2.5,
                   "&.Mui-selected": {
-                    backgroundColor: theme.palette.action.selected,
-                  },
-                  "&.Mui-selected:hover": {
-                    backgroundColor: theme.palette.action.selected,
+                    color: COLORS.whiteColor,
+                    backgroundColor: COLORS.primaryColor,
                   },
                 }}
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    mr: open ? 3 : "auto",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {open && <ListItemText primary={item.text} />}
               </ListItemButton>
             </ListItem>
           ))}
@@ -127,12 +179,24 @@ const DashboardLayout = () => {
         <Divider />
 
         {/* Logout Button at Bottom */}
-        <Box sx={{ mt: "auto", p: 2 }}>
-          <ListItemButton>
-            <ListItemIcon>
+        <Box sx={{ mt: "auto", p: open ? 2 : 0 }}>
+          <ListItemButton
+            sx={{
+              minHeight: 48,
+              justifyContent: open ? "initial" : "center",
+              px: 2.5,
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: open ? 3 : "auto",
+                justifyContent: "center",
+              }}
+            >
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText primary="Logout" />
+            {open && <ListItemText primary="Logout" />}
           </ListItemButton>
         </Box>
       </Drawer>
@@ -143,10 +207,15 @@ const DashboardLayout = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          width: "100%",
+          transition: theme.transitions.create("margin", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          // marginLeft: isMobile ? 0 : `${width}px`,
+          marginTop: "64px", // App bar height
         }}
       >
-        <Toolbar />
         <Outlet />
       </Box>
     </Box>
