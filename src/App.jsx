@@ -4,10 +4,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { WelcomePage } from "./pages/Welcome.page";
 import { LoginPage } from "./pages/Login.page";
 import { SignupPage } from "./pages/Signup.page";
-import DashboardLayout from "./components/Dashboardlayout";
+import DashboardLayout from "./components/DashboardLayout";
 import { ViewContentPage } from "./pages/secure/ViewContent.page";
 import { SummaryPage } from "./pages/secure/SummaryPage";
 import { ProfilePage } from "./pages/secure/ProfilePage";
+import { Conversations } from "./pages/secure/Conversations";
 
 function App() {
   return (
@@ -18,7 +19,14 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<SummaryPage />} />
-          <Route path="/dashboard/conversation" element={<ViewContentPage />} />
+          <Route
+            path="/dashboard/conversation"
+            element={<ViewContentPage />}
+          ></Route>
+          <Route
+            path="/dashboard/conversation/:id"
+            element={<Conversations />}
+          />
           <Route path="/dashboard/profile" element={<ProfilePage />} />
         </Route>
       </Routes>

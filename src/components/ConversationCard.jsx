@@ -1,14 +1,7 @@
-import {
-  Attachment,
-  Category,
-  Person,
-  ThumbDown,
-  ThumbsUpDown,
-  ThumbUp,
-  VerifiedUser,
-} from "@mui/icons-material";
+import { Category, Person, ThumbDown, ThumbUp } from "@mui/icons-material";
 import { Card, CardActions, CardContent, Typography } from "@mui/material";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export const ConversationCard = ({
   priority,
@@ -21,12 +14,27 @@ export const ConversationCard = ({
   created_on,
   tagTitle,
 }) => {
+  const navigate = useNavigate();
+  const getColorByPriority = (priority) => {
+    if (priority === "LOW") return "yellow";
+    if (priority === "HIGH") return "red";
+    return "orange";
+  };
+
+  const handleClick = () => {
+    navigate(`/dashboard/conversation/${id}`);
+  };
   return (
     <Card
       key={id}
-      style={{
-        backgroundColor:
-          priority == "LOW" ? "yellow" : priority == "HIGH" ? "red" : "orange",
+      onClick={handleClick}
+      sx={{
+        backgroundColor: getColorByPriority(priority),
+        transition: "background-color 0.3s ease",
+        "&:hover": {
+          backgroundColor: "whitesmoke",
+          cursor: "pointer",
+        },
       }}
     >
       <CardContent>
@@ -62,7 +70,12 @@ export const ConversationCard = ({
             width: "100%",
           }}
         >
-          <Typography>Date: {created_on}</Typography>
+          <div style={{ display: "flex" }}>
+            <Typography>Date: </Typography>
+            <Typography
+              style={{ fontWeight: "bold" }}
+            >{` ${created_on}`}</Typography>
+          </div>
           <div style={{ display: "flex" }}>
             <Category />
             <Typography>{tagTitle}</Typography>
