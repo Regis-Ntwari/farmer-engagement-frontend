@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Grid,
   Typography,
@@ -7,12 +7,16 @@ import {
   Box,
   TextField,
   Button,
-  FormControl,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { COLORS } from "../../utils/Colors";
 import { ConversationCard } from "../../components/ConversationCard";
+import { getTags } from "../../services/tag";
+import { addContent, getContents } from "../../services/content";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const contents = [
   {
@@ -72,6 +76,34 @@ export const ViewContentPage = () => {
     tag: "",
   });
 
+  // Fetch Tags
+  const {
+    data: tagsData,
+    isLoading: tagsLoading,
+    isError: tagsError,
+    error: tagsErr,
+  } = useQuery({
+    queryKey: ["tags"],
+    queryFn: getTags,
+  });
+
+  // Fetch Conversations
+  const {
+    data: conversationsData,
+    isLoading: convosLoading,
+    isError: convosError,
+    error: convosErr,
+  } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: getContents,
+  });
+
+  // Handle errors with toast
+  useEffect(() => {
+    if (tagsError) toast.error(`Tags error: ${tagsErr.message}`);
+    if (convosError) toast.error(`Conversations error: ${convosErr.message}`);
+  }, [tagsError, convosError, tagsErr, convosErr]);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -81,8 +113,32 @@ export const ViewContentPage = () => {
 
   const handleSubmit = () => {
     console.log("Submitted:", formData);
+    mutation.mutate(formData);
     handleClose();
   };
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: addContent,
+    onSuccess: () => {
+      toast.success("Conversation created!");
+      queryClient.invalidateQueries(["conversations"]);
+      handleClose();
+      setFormData({
+        title: "",
+        content: "",
+        file: "",
+        tag: "",
+      });
+    },
+    onError: (error) => {
+      toast.error(`Submission failed: ${error.message}`);
+    },
+  });
+
+  const tags = tagsData || [];
+  const conversations = conversationsData || [];
 
   return (
     <>
@@ -90,13 +146,21 @@ export const ViewContentPage = () => {
         <Typography variant="h4" style={{ color: COLORS.primaryColor }}>
           CONVERSATIONS
         </Typography>
-        <Grid container mt={3} width="100%" spacing={2}>
-          {contents.map((content) => (
-            <Grid key={content.id} size={{ xs: 12, md: 4 }}>
-              <ConversationCard {...content} />
-            </Grid>
-          ))}
-        </Grid>
+
+        {/* Loading Indicator */}
+        {convosLoading || tagsLoading ? (
+          <Box mt={4} display="flex" justifyContent="center">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container mt={3} width="100%" spacing={2}>
+            {conversations.map((content) => (
+              <Grid key={content.id} size={{ xs: 12, md: 4 }}>
+                <ConversationCard {...content} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Grid>
 
       {/* Floating Action Button */}
@@ -144,9 +208,13 @@ export const ViewContentPage = () => {
             value={formData.tag || ""}
             onChange={handleChange}
           >
-            <MenuItem value="LOW">Low</MenuItem>
-            <MenuItem value="INTERMEDIATE">Intermediate</MenuItem>
-            <MenuItem value="HIGH">High</MenuItem>
+            {tags.map((tag) => {
+              return (
+                <MenuItem key={tag.id} value={tag.id}>
+                  {tag.title}
+                </MenuItem>
+              );
+            })}
           </TextField>
           <Button variant="outlined" component="label" fullWidth sx={{ mt: 1 }}>
             Upload File (Optional)
@@ -165,8 +233,9 @@ export const ViewContentPage = () => {
             variant="contained"
             sx={{ mt: 2 }}
             onClick={handleSubmit}
+            disabled={mutation.isPending}
           >
-            Submit
+            {mutation.isPending ? <CircularProgress size={24} /> : "Submit"}
           </Button>
         </Box>
       </Modal>

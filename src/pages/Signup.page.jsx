@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -19,6 +20,9 @@ import {
 import { COLORS } from "../utils/Colors";
 import { Link, useNavigate } from "react-router-dom";
 import { SECTORS } from "../utils/Locations";
+import { useMutation } from "@tanstack/react-query";
+import { signup } from "../services/auth";
+import { toast } from "react-toastify";
 
 const steps = ["User Details", "Farm Details"];
 
@@ -59,7 +63,7 @@ export const SignupPage = () => {
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [userData, setUserData] = useState({
-    email: "",
+    username: "",
     password: "",
     firstname: "",
     lastname: "",
@@ -80,8 +84,20 @@ export const SignupPage = () => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const mutation = useMutation({
+    mutationFn: signup,
+    onSuccess: (data) => {
+      toast.success("Sign Up successful!");
+      navigate("/login"); // Navigate to login after successful sign-up
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
   const handleSubmit = () => {
-    console.log("Submitting", { userData, farmData });
+    console.log("Submitting", { ...userData, ...farmData });
+    mutation.mutate({ ...userData, ...farmData });
   };
 
   return (
@@ -166,9 +182,9 @@ export const SignupPage = () => {
                 />
                 <TextField
                   fullWidth
-                  label="Email"
-                  name="email"
-                  value={userData.email}
+                  label="Username"
+                  name="username"
+                  value={userData.username}
                   onChange={(e) => handleChange(e, setUserData)}
                   margin="normal"
                   variant="outlined"
@@ -206,8 +222,6 @@ export const SignupPage = () => {
                     value={farmData.district}
                     onChange={(e) => {
                       handleChange(e, setFarmData);
-                      console.log(e.target.value);
-                      console.log(SECTORS[e.target.value]);
                       setSectors(SECTORS[e.target.value]);
                     }}
                   >
@@ -229,7 +243,7 @@ export const SignupPage = () => {
                     }}
                   >
                     {sectors.map((sector) => (
-                      <MenuItem key={sector} value={sector.toUpperCase()}>
+                      <MenuItem key={sector} value={sector}>
                         {sector.toUpperCase()}
                       </MenuItem>
                     ))}
@@ -254,8 +268,13 @@ export const SignupPage = () => {
                   onClick={handleSubmit}
                   variant="contained"
                   style={{ backgroundColor: COLORS.primaryColor }}
+                  disabled={mutation.isPending}
                 >
-                  Submit
+                  {mutation.isPending ? (
+                    <CircularProgress size={24} sx={{ color: "white" }} />
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
               ) : (
                 <Button

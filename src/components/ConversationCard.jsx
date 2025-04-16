@@ -11,7 +11,7 @@ export const ConversationCard = ({
   firstname,
   downvotes,
   upvotes,
-  created_on,
+  createdOn,
   tagTitle,
 }) => {
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export const ConversationCard = ({
             <Typography>Date: </Typography>
             <Typography
               style={{ fontWeight: "bold" }}
-            >{` ${created_on}`}</Typography>
+            >{` ${createdOn}`}</Typography>
           </div>
           <div style={{ display: "flex" }}>
             <Category />
