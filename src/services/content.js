@@ -40,3 +40,63 @@ export const getContents = async () => {
     throw Error(error.response?.data?.result || "Get Contents Failed");
   }
 };
+
+export const getContentById = async (id) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.get(`${CONTENT_URL}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data.result;
+  } catch (error) {
+    throw Error(error.response?.data?.result || "Get Content by ID Failed");
+  }
+};
+
+export const upvoteDownvoteComment = async (contentId, type) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.post(
+      `${CONTENT_URL}/upvote-downvote/`,
+      {
+        content_id: parseInt(contentId),
+        action: type,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data.result;
+  } catch (error) {
+    console.error("Upvote/Downvote error:", error);
+    throw Error(error.response?.data?.result || "Upvote/Downvote Failed");
+  }
+};
+
+export const addComment = async (contentId, comment) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.post(
+      `${CONTENT_URL}/comment/`,
+      {
+        comment: comment,
+        content_id: parseInt(contentId),
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data.result;
+  } catch (error) {
+    console.error("Add Comment error:", error);
+    throw Error(error.response?.data?.result || "Add Comment Failed");
+  }
+};
