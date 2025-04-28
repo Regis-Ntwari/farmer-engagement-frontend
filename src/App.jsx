@@ -4,11 +4,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { WelcomePage } from "./pages/Welcome.page";
 import { LoginPage } from "./pages/Login.page";
 import { SignupPage } from "./pages/Signup.page";
-import DashboardLayout from "./components/DashboardLayout";
 import { ViewContentPage } from "./pages/secure/ViewContent.page";
 import { SummaryPage } from "./pages/secure/SummaryPage";
 import { ProfilePage } from "./pages/secure/ProfilePage";
 import { Conversations } from "./pages/secure/Conversations";
+import { BestpracticePage } from "./pages/secure/Bestpractice.page";
+import DashboardLayout from "./components/Dashboardlayout";
+import { UsersPage } from "./pages/secure/users.page";
 
 function App() {
   return (
@@ -28,6 +30,11 @@ function App() {
             element={<Conversations />}
           />
           <Route path="/dashboard/profile" element={<ProfilePage />} />
+          <Route
+            path="/dashboard/best-practices"
+            element={<BestpracticePage />}
+          />
+          <Route path="/dashboard/users" element={<UsersPage />} />
         </Route>
       </Routes>
       <ToastContainer />

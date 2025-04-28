@@ -23,6 +23,10 @@ export const login = async (credentials) => {
 
   localStorage.setItem("authToken", data.result.token); // Store token
 
+  localStorage.setItem("role", JSON.stringify(data.result.role));
+
+  localStorage.setItem("id", JSON.stringify(data.result.id));
+
   return data;
 };
 

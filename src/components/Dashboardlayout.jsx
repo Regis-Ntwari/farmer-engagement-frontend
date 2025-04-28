@@ -1,6 +1,6 @@
 // src/components/DashboardLayout.jsx
-import React, { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Drawer,
@@ -17,6 +17,7 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
+  Avatar,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -28,18 +29,35 @@ import {
   Logout as LogoutIcon,
   PhoneInTalk,
   Person,
+  Verified,
 } from "@mui/icons-material";
 import { COLORS } from "../utils/Colors";
 
-const navItems = [
-  { text: "Summary", icon: <DashboardIcon />, path: "/dashboard" },
-  {
-    text: "Conversations",
-    icon: <PhoneInTalk />,
-    path: "/dashboard/conversation",
-  },
-  { text: "Profile", icon: <Person />, path: "/dashboard/profile" },
-];
+const getNavItems = (role) => {
+  const commonItems = [
+    { text: "Summary", icon: <DashboardIcon />, path: "/dashboard" },
+    {
+      text: "Conversations",
+      icon: <PhoneInTalk />,
+      path: "/dashboard/conversation",
+    },
+    {
+      text: "Best Practices",
+      icon: <Verified />,
+      path: "/dashboard/best-practices",
+    },
+    { text: "Profile", icon: <Person />, path: "/dashboard/profile" },
+  ];
+
+  if (role === "GOVERNMENT") {
+    return [
+      ...commonItems,
+      { text: "Users", icon: <PeopleIcon />, path: "/dashboard/users" },
+    ];
+  }
+
+  return commonItems;
+};
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 64;
@@ -48,11 +66,26 @@ const DashboardLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopOpen, setDesktopOpen] = useState(true);
+  const [userRole, setUserRole] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (role) {
+      setUserRole(JSON.parse(role));
+    }
+    if (user) {
+      setUserInfo(user);
+    }
+  }, []);
 
   const open = isMobile ? mobileOpen : desktopOpen;
   const width = open ? drawerWidth : collapsedDrawerWidth;
+  const navItems = getNavItems(userRole);
 
   const handleDrawerToggle = () => {
     if (isMobile) {
@@ -60,6 +93,11 @@ const DashboardLayout = () => {
     } else {
       setDesktopOpen(!desktopOpen);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
@@ -72,8 +110,8 @@ const DashboardLayout = () => {
         style={{ backgroundColor: COLORS.primaryColor }}
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          width: isMobile ? "100%" : `calc(100% - ${width}px)`,
-          ml: isMobile ? 0 : `${width}px`,
+          width: open ? `calc(100% - ${drawerWidth}px)` : "100%",
+          ml: open ? `${drawerWidth}px` : 0,
           transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -102,13 +140,13 @@ const DashboardLayout = () => {
         open={open}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile
+          keepMounted: true,
         }}
         sx={{
-          width: width,
+          width: open ? drawerWidth : collapsedDrawerWidth,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
-            width: width,
+            width: open ? drawerWidth : collapsedDrawerWidth,
             boxSizing: "border-box",
             overflowX: "hidden",
             transition: theme.transitions.create("width", {
@@ -143,6 +181,39 @@ const DashboardLayout = () => {
 
         <Divider />
 
+        {/* User Profile Section */}
+        {open && userInfo && (
+          <Box
+            sx={{
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                bgcolor: COLORS.primaryColor,
+                fontSize: "1.5rem",
+              }}
+            >
+              {userInfo.firstname[0]}
+              {userInfo.lastname[0]}
+            </Avatar>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {userInfo.firstname} {userInfo.lastname}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {userRole}
+            </Typography>
+          </Box>
+        )}
+
+        <Divider />
+
         {/* Navigation Items */}
         <List>
           {navItems.map((item) => (
@@ -166,6 +237,10 @@ const DashboardLayout = () => {
                     minWidth: 0,
                     mr: open ? 3 : "auto",
                     justifyContent: "center",
+                    color:
+                      location.pathname === item.path
+                        ? COLORS.whiteColor
+                        : "inherit",
                   }}
                 >
                   {item.icon}
@@ -176,15 +251,19 @@ const DashboardLayout = () => {
           ))}
         </List>
 
-        <Divider />
-
-        {/* Logout Button at Bottom */}
-        <Box sx={{ mt: "auto", p: open ? 2 : 0 }}>
+        <Box sx={{ mt: "auto" }}>
+          <Divider />
           <ListItemButton
+            onClick={handleLogout}
             sx={{
               minHeight: 48,
               justifyContent: open ? "initial" : "center",
               px: 2.5,
+              color: "error.main",
+              "&:hover": {
+                backgroundColor: "error.light",
+                color: "error.contrastText",
+              },
             }}
           >
             <ListItemIcon
@@ -192,6 +271,7 @@ const DashboardLayout = () => {
                 minWidth: 0,
                 mr: open ? 3 : "auto",
                 justifyContent: "center",
+                color: "inherit",
               }}
             >
               <LogoutIcon />
@@ -206,17 +286,22 @@ const DashboardLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: "100%",
-          transition: theme.transitions.create("margin", {
+          width: open
+            ? `calc(100% - ${drawerWidth}px)`
+            : `calc(100% - ${collapsedDrawerWidth}px)`,
+          ml: "auto",
+          transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          // marginLeft: isMobile ? 0 : `${width}px`,
           marginTop: "64px", // App bar height
         }}
       >
-        <Outlet />
+        <Box
+          sx={{ p: 3, width: "100%", maxWidth: "100%", overflowX: "hidden" }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );
