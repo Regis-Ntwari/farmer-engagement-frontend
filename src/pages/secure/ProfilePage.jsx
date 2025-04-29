@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from "@mui/material";
 import {
   Person,
@@ -25,6 +26,8 @@ import {
   Edit,
   Save,
   Lock,
+  Star,
+  EmojiEvents,
 } from "@mui/icons-material";
 import { COLORS } from "../../utils/Colors";
 import { getUserById, updateUser } from "../../services/user";
@@ -106,8 +109,9 @@ export const ProfilePage = () => {
     email: "",
     farm_name: "",
     organization_name: "",
-    district: "",
-    sector: "",
+    location: "",
+    points: 0,
+    level: 0,
   });
 
   useEffect(() => {
@@ -117,8 +121,9 @@ export const ProfilePage = () => {
         email: user.email == null ? "N/A" : user.email,
         farm_name: user.farm_name || "",
         organization_name: user.organization_name || "",
-        district: user.district || "",
-        sector: user.sector || "",
+        location: user.location || "",
+        points: user.points || 0,
+        level: user.level || 0,
       });
     }
   }, [user]);
@@ -249,14 +254,8 @@ export const ProfilePage = () => {
                     />
                     <InfoField
                       icon={<LocationOn />}
-                      label="District"
-                      value={userData.district}
-                      editable={false}
-                    />
-                    <InfoField
-                      icon={<LocationOn />}
-                      label="Sector"
-                      value={userData.sector}
+                      label="Location"
+                      value={userData.location}
                       editable={false}
                     />
                   </>
@@ -322,18 +321,41 @@ export const ProfilePage = () => {
                 {userRole}
               </Typography>
               {userRole === "FARMER" && (
-                <Typography variant="body2" color="text.secondary">
-                  {userData.farm_name}
-                </Typography>
+                <>
+                  <Typography variant="body2" color="text.secondary">
+                    {userData.farm_name}
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="center"
+                    sx={{ mt: 1 }}
+                  >
+                    <Chip
+                      icon={<Star />}
+                      label={`${userData.points} Points`}
+                      color="primary"
+                      variant="outlined"
+                    />
+                    <Chip
+                      icon={<EmojiEvents />}
+                      label={`Level ${userData.level}`}
+                      color="success"
+                      variant="outlined"
+                    />
+                  </Stack>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    {userData.location}
+                  </Typography>
+                </>
               )}
               {userRole !== "FARMER" && (
                 <Typography variant="body2" color="text.secondary">
                   {userData.organization_name}
-                </Typography>
-              )}
-              {userRole === "FARMER" && (
-                <Typography variant="body2" color="text.secondary">
-                  {userData.district}, {userData.sector}
                 </Typography>
               )}
             </Box>

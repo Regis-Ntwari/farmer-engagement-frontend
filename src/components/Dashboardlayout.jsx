@@ -168,7 +168,7 @@ const DashboardLayout = () => {
           >
             {open && (
               <Typography variant="h6" noWrap>
-                Farmers
+                Pig Farm Connect
               </Typography>
             )}
             {open && !isMobile && (

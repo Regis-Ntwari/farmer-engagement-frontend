@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -19,6 +19,7 @@ import {
   PhoneInTalk,
 } from "@mui/icons-material";
 import { COLORS } from "../../utils/Colors";
+import { getContents } from "../../services/statistics";
 
 const StatCard = ({ icon, title, value, subtitle }) => (
   <Card
@@ -61,6 +62,28 @@ const StatCard = ({ icon, title, value, subtitle }) => (
 );
 
 export const SummaryPage = () => {
+  const [statistics, setStatistics] = useState({
+    my_conversations: 0,
+    new_farmers: 0,
+    new_insights: 0,
+    active_farmers: 0,
+    best_practice_title: "",
+    market_opportunities: 0,
+  });
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const data = await getContents();
+        setStatistics(data);
+      } catch (error) {
+        console.error("Error fetching statistics:", error);
+      }
+    };
+
+    fetchStatistics();
+  }, []);
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, color: COLORS.primaryColor }}>
@@ -73,7 +96,7 @@ export const SummaryPage = () => {
           <StatCard
             icon={<PhoneInTalk />}
             title="My Conversations"
-            value="10"
+            value={statistics.my_conversations}
             subtitle="Started this week"
           />
         </Grid>
@@ -81,7 +104,7 @@ export const SummaryPage = () => {
           <StatCard
             icon={<People />}
             title="Active Farmers"
-            value="2,450"
+            value={statistics.active_farmers}
             subtitle="In your network"
           />
         </Grid>
@@ -89,7 +112,7 @@ export const SummaryPage = () => {
           <StatCard
             icon={<Chat />}
             title="New Insights"
-            value="128"
+            value={statistics.new_insights}
             subtitle="Shared this week"
           />
         </Grid>
@@ -97,7 +120,7 @@ export const SummaryPage = () => {
           <StatCard
             icon={<LocalShipping />}
             title="Market Opportunities"
-            value="24"
+            value={statistics.market_opportunities}
             subtitle="Available now"
           />
         </Grid>
@@ -117,7 +140,7 @@ export const SummaryPage = () => {
           Recent Activity
         </Typography>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="center" mb={2}>
@@ -125,16 +148,15 @@ export const SummaryPage = () => {
                   <Typography variant="h6">Best Practices</Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  New feeding strategy increased weight gain by 20% in test
-                  group
+                  {statistics.best_practice_title}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Updated 2 days ago
+                  Updated recently
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="center" mb={2}>
@@ -142,10 +164,11 @@ export const SummaryPage = () => {
                   <Typography variant="h6">Community Updates</Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  15 new farmers joined the community this week
+                  {statistics.new_farmers} new farmers joined the community this
+                  week
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Updated 1 day ago
+                  Updated recently
                 </Typography>
               </CardContent>
             </Card>
