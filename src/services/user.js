@@ -76,3 +76,37 @@ export const getUserById = async (userId) => {
     throw Error(error.response?.data?.result || "Get User Failed");
   }
 };
+
+export const changePassword = async (passwordData) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.post(
+      `${USER_URL}/change-password/`,
+      passwordData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data.result;
+  } catch (error) {
+    console.log(error);
+    throw Error(error.response?.data?.result || "Update User Password Failed");
+  }
+};
+
+export const resetPassword = async (userId) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await axios.get(`${USER_URL}/${userId}/reset/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data.result;
+  } catch (error) {
+    console.log(error);
+    throw Error(error.response?.data?.result || "Reset Password Failed");
+  }
+};

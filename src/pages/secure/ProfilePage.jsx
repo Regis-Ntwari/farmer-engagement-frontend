@@ -30,7 +30,7 @@ import {
   EmojiEvents,
 } from "@mui/icons-material";
 import { COLORS } from "../../utils/Colors";
-import { getUserById, updateUser } from "../../services/user";
+import { getUserById, updateUser, changePassword } from "../../services/user";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { UsersPage } from "./users.page";
@@ -104,6 +104,22 @@ export const ProfilePage = () => {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: (passwordData) => changePassword(passwordData),
+    onSuccess: () => {
+      toast.success("Password updated successfully");
+      setShowPasswordDialog(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update password");
+    },
+  });
+
   const [userData, setUserData] = useState({
     fullname: "",
     email: "",
@@ -162,14 +178,9 @@ export const ProfilePage = () => {
   const handlePasswordUpdate = () => {
     if (!validatePassword()) return;
 
-    // Here you would typically make an API call to update the password
-    // For now, we'll just show a success message and reset the form
-    toast.success("Password updated successfully");
-    setShowPasswordDialog(false);
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+    changePasswordMutation.mutate({
+      current_password: passwordData.currentPassword,
+      new_password: passwordData.newPassword,
     });
   };
 

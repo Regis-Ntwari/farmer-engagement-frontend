@@ -21,17 +21,24 @@ import {
   Chip,
   TableSortLabel,
   InputAdornment,
+  Stack,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   Search as SearchIcon,
+  VpnKey as VpnKeyIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { COLORS } from "../../utils/Colors";
-import { addUser, getUsers, lockUnlockUser } from "../../services/user";
+import {
+  addUser,
+  getUsers,
+  lockUnlockUser,
+  resetPassword,
+} from "../../services/user";
 
 const CreateUserDialog = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -163,12 +170,27 @@ export const UsersPage = () => {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: (userId) => resetPassword(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["users"]);
+      toast.success("Password reset successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to reset password");
+    },
+  });
+
   const handleCreateUser = (userData) => {
     createUserMutation.mutate(userData);
   };
 
   const handleToggleLock = (userId) => {
     toggleLockMutation.mutate(userId);
+  };
+
+  const handleResetPassword = (userId) => {
+    resetPasswordMutation.mutate(userId);
   };
 
   const handleRequestSort = (property) => {
@@ -330,12 +352,20 @@ export const UsersPage = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    onClick={() => handleToggleLock(user.id)}
-                    color={!user.nonLocked ? "success" : "error"}
-                  >
-                    {!user.nonLocked ? <LockOpenIcon /> : <LockIcon />}
-                  </IconButton>
+                  <Stack direction="row" spacing={1}>
+                    <IconButton
+                      onClick={() => handleToggleLock(user.id)}
+                      color={!user.nonLocked ? "success" : "error"}
+                    >
+                      {!user.nonLocked ? <LockOpenIcon /> : <LockIcon />}
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleResetPassword(user.id)}
+                      color="primary"
+                    >
+                      <VpnKeyIcon />
+                    </IconButton>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
