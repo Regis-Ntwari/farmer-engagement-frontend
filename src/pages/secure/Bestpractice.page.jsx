@@ -187,7 +187,7 @@ const PracticeDialog = ({ open, practice, onClose }) => {
                       p: 2,
                       borderRadius: 2,
                       bgcolor: "primary.light",
-                      color: "primary.dark",
+                      color: "white",
                     }}
                   >
                     <Typography variant="body2">{benefit}</Typography>
